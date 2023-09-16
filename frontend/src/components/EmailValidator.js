@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFileText, faFileCsv, faCopy, faMailBulk, faMailForward, faMailReplyAll, faMessage, faEnvelopeOpen, faEnvelope, faPlus, faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
+import EmailValidationData from "./EmailValidationData";
 
 function EmailValidator() {
     const [emails, setEmails] = useState([]);
-    const [validEmailsData, setvalidEmailsData] = useState([{ email: 'test@test.com' }, { email: 'example@test.com' }]);
-    const [invalidEmailsData, setInvalidEmailsData] = useState([{ email: 'test@test.com' }, { email: 'example@test.com' }]);
-    const [selectedValidEmailData, setSelectedValidEmailData] = useState();
-    const [selectedInvalidEmailData, setSelectedInvalidEmailData] = useState();
+
+    const [validEmailsData, setValidEmailsData] = useState([{ email: 'test@test.com' }, { email: 'example@test.com' }, { email: 'jim@fun.com' }, { email: 'bart@ok.org' }]);
+    const [invalidEmailsData, setInvalidEmailsData] = useState([{ email: 'test@test.com' }, { email: 'example@test.com' }, { email: 'jim@fun.com' }, { email: 'bart@ok.org' }]);
 
 
 
@@ -21,10 +19,6 @@ function EmailValidator() {
         };
 
         reader.readAsText(txtFile);
-    }
-
-    function textareaValue(arr) {
-        return arr.map((item, index) => `${item}${arr.length - 1 === index ? '' : '\n'}`).join('')
     }
 
     async function validateEmails(emails) {
@@ -51,69 +45,12 @@ function EmailValidator() {
             }
         });
 
-        setvalidEmailsData(valids);
+        setValidEmailsData(valids);
         setInvalidEmailsData(invalids);
     }
 
-    function downloadTxtFile(arr, fileName) {
-        const txtString = arr.map(item => item.email).join('\n');
-        const textBlob = new Blob([txtString], { type: 'text/plain' });
-        const blobUrl = URL.createObjectURL(textBlob);
-
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = fileName.split('.').pop() === 'txt' ? fileName : `${fileName}.txt`;
-        a.click();
-
-        URL.revokeObjectURL(blobUrl);
-    }
-
-    function downloadCsvFile(arr, fileName) {
-        let header = ['email'];
-        let body = '';
-        arr.forEach(item => {
-            for (const key in item) {
-                if (!header.includes(key)) {
-                    header.push(key.toString());
-                }
-            }
-        });
-        arr.forEach(item => {
-            header.split(',').forEach(key => {
-                if (item[key] != undefined) {
-                    body += item[key].toString() + ',';
-                }
-            });
-            body += '\n';
-        });
-        const csvString = header + '\n' + body;
-        const csvBlob = new Blob([csvString], { type: 'text/csv' });
-
-        const blobUrl = URL.createObjectURL(csvBlob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = fileName.split('.').pop() === 'csv' ? fileName : `${fileName}.csv`;
-        a.click();
-
-        URL.revokeObjectURL(blobUrl);
-    }
-
-    function copyToClipboard(emailsData) {
-        const textArea = document.createElement("textarea");
-        textArea.value = emailsData.map(item => item.email).join('\n');
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textArea);
-    }
-
-    function toggleSelected(e, index, stateVar, stateFunc) {
-        if (e.target.classList.contains('no-toggle')) return null;
-
-        if (stateVar === index) {
-            return stateFunc(null);
-        }
-        stateFunc(index);
+    function textareaValue(arr) {
+        return arr.map((item, index) => `${item}${arr.length - 1 === index ? '' : '\n'}`).join('')
     }
 
 
@@ -139,123 +76,8 @@ function EmailValidator() {
                     </div>
                 </div>
                 <div className="flex flex-col gap-6">
-                    <div className="flex">
-                        <div className="flex flex-col">
-                            <h3 className="mb-6">
-                                Valid Emails:
-                            </h3>
-                            <div className="flex flex-col gap-2 bg-white w-[500px] h-[200px] p-2 overflow-scroll">
-                                {validEmailsData.length > 0
-                                    ? validEmailsData.map((emailData, index) => {
-                                        return (
-                                            <div className="bg-green-400" key={index}>
-                                                <div className="flex p-1 cursor-pointer" onClick={e => toggleSelected(e, index, selectedValidEmailData, setSelectedValidEmailData)}>
-                                                    <a className="no-toggle hover:opacity-60" href={'mailto:' + emailData.email}>
-                                                        <FontAwesomeIcon icon={faEnvelope} className="no-toggle pr-2 pointer-events-none" />
-                                                    </a>
-                                                    <span className="flex flex-grow justify-between items-center">
-                                                        <span>{emailData.email}</span>
-                                                        {selectedValidEmailData === index
-                                                            ? <FontAwesomeIcon icon={faChevronUp} />
-                                                            : <FontAwesomeIcon icon={faChevronDown} />}
-
-                                                    </span>
-                                                </div>
-                                                {selectedValidEmailData === index
-                                                    ? <div className="active dropdown-item cubic-bezier pl-2 pr-2 bg-green-300 overflow-hidden">
-                                                        <div className="p-2">
-                                                            Dropdown Content
-                                                        </div>
-                                                    </div>
-                                                    : <div className="dropdown-item cubic-bezier pl-2 pr-2 bg-green-300 overflow-hidden">
-                                                        <div className="p-2">
-                                                            Dropdown Content
-                                                        </div>
-                                                    </div>}
-                                            </div>
-                                        )
-                                    })
-                                    : <span></span>}
-                            </div>
-                        </div>
-                        <div className="flex flex-col justify-end gap-2 mt-2 ml-1">
-                            {validEmailsData.length > 0
-                                ? <>
-                                    <button className="flex items-center gap-1 bg-green-500 h-10 p-2 border border-black rounded-lg hover:opacity-80" onClick={e => downloadTxtFile(validEmailsData, `invalid-emails-${Date.now()}.txt`)}>
-                                        <FontAwesomeIcon icon={faFileText} className="cursor-pointer" />
-                                        <span>.txt</span>
-                                    </button>
-                                    <button className="flex items-center gap-1 bg-green-500 h-10 p-2 border border-black rounded-lg hover:opacity-80" onClick={e => downloadCsvFile(validEmailsData, `invalid-emails-${Date.now()}.csv`)}>
-                                        <FontAwesomeIcon icon={faFileCsv} className="cursor-pointer" />
-                                        <span>.csv</span>
-                                    </button>
-                                    <button className="flex items-center gap-1 bg-green-500 h-10 p-2 border border-black rounded-lg hover:opacity-80" onClick={e => copyToClipboard(validEmailsData)}>
-                                        <FontAwesomeIcon icon={faCopy} className="cursor-pointer" />
-                                        <span>copy</span>
-                                    </button>
-                                </>
-                                : ''}
-                        </div>
-                    </div>
-
-                    <div className="flex">
-                        <div className="flex flex-col">
-                            <h3 className="mb-6">
-                                Invalid Emails:
-                            </h3>
-                            <div className="flex flex-col gap-2 bg-white w-[500px] h-[200px] p-2 overflow-scroll">
-                                {invalidEmailsData.length > 0
-                                    ? invalidEmailsData.map((emailData, index) => {
-                                        return (
-                                            <div className="bg-red-400" key={index}>
-                                                <div className="flex p-1 cursor-pointer" onClick={e => toggleSelected(e, index, selectedInvalidEmailData, setSelectedInvalidEmailData)}>
-                                                    <a className="no-toggle hover:opacity-60" href={'mailto:' + emailData.email}>
-                                                        <FontAwesomeIcon icon={faEnvelope} className="no-toggle pr-2 pointer-events-none" />
-                                                    </a>
-                                                    <span className="flex flex-grow justify-between items-center">
-                                                        <span>{emailData.email}</span>
-                                                        {selectedInvalidEmailData === index
-                                                            ? <FontAwesomeIcon icon={faChevronUp} />
-                                                            : <FontAwesomeIcon icon={faChevronDown} />}
-
-                                                    </span>
-                                                </div>
-                                                {selectedInvalidEmailData === index
-                                                    ? <div className="active dropdown-item cubic-bezier pl-2 pr-2 bg-red-300 overflow-hidden">
-                                                        <div className="p-2">
-                                                            Dropdown Content
-                                                        </div>
-                                                    </div>
-                                                    : <div className="dropdown-item cubic-bezier pl-2 pr-2 bg-red-300 overflow-hidden">
-                                                        <div className="p-2">
-                                                            Dropdown Content
-                                                        </div>
-                                                    </div>}
-                                            </div>
-                                        )
-                                    })
-                                    : <span></span>}
-                            </div>
-                        </div>
-                        <div className="flex flex-col justify-end gap-2 mt-2 ml-1">
-                            {invalidEmailsData.length > 0
-                                ? <>
-                                    <button className="flex items-center gap-1 bg-green-500 h-10 p-2 border border-black rounded-lg hover:opacity-80" onClick={e => downloadTxtFile(invalidEmailsData, `invalid-emails-${Date.now()}.txt`)}>
-                                        <FontAwesomeIcon icon={faFileText} className="cursor-pointer" />
-                                        <span>.txt</span>
-                                    </button>
-                                    <button className="flex items-center gap-1 bg-green-500 h-10 p-2 border border-black rounded-lg hover:opacity-80" onClick={e => downloadCsvFile(invalidEmailsData, `invalid-emails-${Date.now()}.csv`)}>
-                                        <FontAwesomeIcon icon={faFileCsv} className="cursor-pointer" />
-                                        <span>.csv</span>
-                                    </button>
-                                    <button className="flex items-center gap-1 bg-green-500 h-10 p-2 border border-black rounded-lg hover:opacity-80" onClick={e => copyToClipboard(invalidEmailsData)}>
-                                        <FontAwesomeIcon icon={faCopy} className="cursor-pointer" />
-                                        <span>copy</span>
-                                    </button>
-                                </>
-                                : ''}
-                        </div>
-                    </div>
+                    <EmailValidationData emailData={validEmailsData} setEmailData={setValidEmailsData} heading={'Valid Emails: '} />
+                    <EmailValidationData emailData={invalidEmailsData} setEmailData={setInvalidEmailsData} heading={'Invalid Emails: '} />
                 </div>
             </div >
         </div>
